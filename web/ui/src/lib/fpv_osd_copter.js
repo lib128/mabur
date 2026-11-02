@@ -26,11 +26,11 @@ import { OSD_W, OSD_H } from './fpv_osd.js';
 
 export const COPTER_THEME = {
   ink: '#6dff9b',                       // numerals, ticks, lines
-  dim: '#3fae6a',                       // labels, unlit scale marks
+  dim: '#63d890',                       // labels, unlit scale marks
   accent: '#4fdcff',                    // reticle, bars, radar
   warn: '#ffd23f',
   bad: '#ff5a5a',
-  panel: 'rgba(6, 30, 44, 0.55)',       // panel fill
+  panel: 'rgba(6, 30, 44, 0)',          // panel fill; raise alpha (e.g. 0.55) for a tinted glass look
   panelEdge: 'rgba(109, 255, 155, 0.55)',
   halo: 'rgba(0, 16, 10, 0.75)',        // outline behind free-standing text
 };
@@ -106,7 +106,8 @@ function poly(ctx, pts, o = {}) {
 function seg(ctx, x1, y1, x2, y2, o = {}) { poly(ctx, [[x1, y1], [x2, y2]], o); }
 
 function txt(ctx, s, x, y, o = {}) {
-  const { size = 13, align = 'left', baseline = 'middle', color = T.ink, halo = 0 } = o;
+  // A dark outline keeps text legible with no panel behind it.
+  const { size = 13, align = 'left', baseline = 'middle', color = T.ink, halo = 2.2 } = o;
   ctx.font = `500 ${size}px ${FONT}`;
   ctx.textAlign = align;
   ctx.textBaseline = baseline;
@@ -161,7 +162,7 @@ function segBar(ctx, x, y, w, h, n, frac, color = T.accent) {
   const cw = (w - gap * (n - 1)) / n;
   const lit = fin(frac) ? Math.round(clamp(frac, 0, 1) * n) : 0;
   for (let i = 0; i < n; i++) {
-    ctx.fillStyle = i < lit ? color : 'rgba(79, 220, 255, 0.16)';
+    ctx.fillStyle = i < lit ? color : 'rgba(79, 220, 255, 0.22)';
     ctx.fillRect(x + i * (cw + gap), y, cw, h);
   }
 }
@@ -355,13 +356,13 @@ function drawBattery(ctx, f) {
 
   const pct = f.batteryPct;
   txt(ctx, 'CHARGE', x + 14, y + 44, { size: 12, color: T.dim });
-  txt(ctx, fin(pct) ? `${Math.round(pct)}%` : '--%', x + 92, y + 44, { size: 14, align: 'right', color: warn || T.ink });
-  segBar(ctx, x + 102, y + 38, w - 102 - 14, 12, 10, fin(pct) ? pct / 100 : NaN, warn || T.accent);
+  txt(ctx, fin(pct) ? `${Math.round(pct)}%` : '--%', x + 104, y + 44, { size: 14, align: 'right', color: warn || T.ink });
+  segBar(ctx, x + 112, y + 38, w - 112 - 14, 12, 10, fin(pct) ? pct / 100 : NaN, warn || T.accent);
 
   const cell = cellVoltage(f);
   txt(ctx, 'CELL', x + 14, y + 68, { size: 12, color: T.dim });
-  txt(ctx, fin(cell) ? `${cell.toFixed(2)}V` : '--', x + 92, y + 68, { size: 14, align: 'right', color: warn || T.ink });
-  segBar(ctx, x + 102, y + 62, w - 102 - 14, 12, 10, fin(cell) ? (cell - 3.3) / (4.2 - 3.3) : NaN, warn || T.accent);
+  txt(ctx, fin(cell) ? `${cell.toFixed(2)}V` : '--', x + 104, y + 68, { size: 14, align: 'right', color: warn || T.ink });
+  segBar(ctx, x + 112, y + 62, w - 112 - 14, 12, 10, fin(cell) ? (cell - 3.3) / (4.2 - 3.3) : NaN, warn || T.accent);
 
   seg(ctx, x + 14, y + 88, x + w - 14, y + 88, { w: 1, color: T.panelEdge });
   const rows = [
