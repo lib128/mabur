@@ -36,14 +36,45 @@ function lastSaved() {
 }
 const saved = lastSaved();
 
+export const OSD_DEFAULTS = {
+  hudType: 'plane',        // 'plane' | 'copter' | 'auto' (follows the heartbeat's vehicle type)
+  copterCamUptilt: 0,      // copter HUD: FPV camera uptilt from the nose, deg
+  copterSpeedMax: 120,     // copter HUD: ground-speed bar full scale, km/h
+  fovDiag: 110,
+  camPitch: 12,
+  gimbalPitchChannel: 11,
+  gimbalPitchStrength: 30,
+  gimbalYawEnabled: false,
+  gimbalYawChannel: 10,
+  gimbalYawStrength: 60,
+  throttleChannel: 4,
+  aoaWarn: 12,
+  aoaCritical: 18,
+  stallSpeed: 45,
+  smoothingMs: 100,
+};
+
+function loadOsd() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('webgs.osd') || 'null');
+    return raw && typeof raw === 'object' ? { ...OSD_DEFAULTS, ...raw } : { ...OSD_DEFAULTS };
+  } catch { return { ...OSD_DEFAULTS }; }
+}
+
+export function saveOsd(osd) {
+  try { localStorage.setItem('webgs.osd', JSON.stringify(osd)); } catch { /* ignore */ }
+}
+
 export const ui = $state({
   tab: resume ? 'config' : 'stats',
   fs: false,
   cfgOpen: !!resume,
   statsVisible: true,
+  statsPinned: false,
   floatOpen: true,
   fpos: null,
   applied: '',
+  osd: loadOsd(),
   mode: initialMode(),
   cfg: initialCfg(),
   key: loadKey(storageSafe()),
